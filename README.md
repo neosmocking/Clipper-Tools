@@ -1,19 +1,38 @@
 # Clipper Toolkit
 
-Toolkit sederhana berbasis Python untuk membantu workflow **video clipping otomatis**: mulai dari ekstraksi timestamp, pemotongan video, rename clip, hingga pembuatan subtitle menggunakan Whisper.
+Toolkit Python sederhana untuk membantu workflow **video clipping otomatis**: mulai dari ekstraksi timestamp dari teks, memotong video, rename clip, hingga membuat subtitle menggunakan Whisper.
 
-Tool ini dirancang untuk mempercepat proses membuat **short-form content** seperti YouTube Shorts, TikTok, dan Reels dari video panjang.
+Tool ini dirancang untuk mempercepat pembuatan **short-form content** seperti YouTube Shorts, TikTok, dan Reels dari video panjang.
 
 ---
 
 # Features
 
-* Extract timestamp dan judul dari file teks
+* Extract **timestamp dan judul** dari file teks
 * Memotong video otomatis berdasarkan timestamp
 * Rename clip video berdasarkan judul
-* Generate subtitle (.srt) menggunakan Whisper
+* Generate subtitle `.srt` menggunakan Whisper
 * Pilihan model Whisper (tiny → large)
 * Deteksi GPU otomatis (CUDA jika tersedia)
+* Skip otomatis jika timestamp melebihi durasi video
+
+---
+
+# Workflow
+
+Pipeline kerja toolkit ini:
+
+```
+Text Input
+   ↓
+Extract Timestamp + Judul
+   ↓
+Video Cut
+   ↓
+Rename Video
+   ↓
+Generate Subtitle
+```
 
 ---
 
@@ -22,23 +41,36 @@ Tool ini dirancang untuk mempercepat proses membuat **short-form content** seper
 ```
 clipper_toolkit/
 
+LICENSE
+README.md
+requirements.txt
+.gitignore
+
 clipper_tools.py
 
 scripts/
- ├ extractor.py
- ├ video_cut.py
- ├ rename_video.py
- └ subtitle_generator.py
+  extractor.py
+  video_cut.py
+  rename_video.py
+  subtitle_generator.py
+
+sample/
+  example_input.txt
 
 data/
+  .gitkeep
+
 output/
+  clips/
+    .gitkeep
 ```
 
-Output utama berada di:
+Folder penting:
 
-```
-output/clips/
-```
+* **scripts/** → semua tool utama
+* **sample/** → contoh input extractor
+* **data/** → hasil extractor (timestamp & judul)
+* **output/clips/** → hasil potongan video dan subtitle
 
 ---
 
@@ -48,7 +80,7 @@ output/clips/
 * FFmpeg
 * GPU opsional (untuk Whisper lebih cepat)
 
-Install dependency Python:
+Install Python dependencies:
 
 ```
 pip install -r requirements.txt
@@ -58,13 +90,13 @@ pip install -r requirements.txt
 
 # Install FFmpeg
 
-Tool pemotong video menggunakan **FFmpeg**.
+Tool pemotong video menggunakan FFmpeg.
 
-Download:
+Download dari:
 
 https://ffmpeg.org/download.html
 
-Setelah install pastikan command ini bekerja di terminal:
+Pastikan sudah terinstall dengan menjalankan:
 
 ```
 ffmpeg -version
@@ -80,7 +112,7 @@ Masuk ke folder project lalu jalankan:
 python clipper_tools.py
 ```
 
-Menu toolkit:
+Menu toolkit akan muncul:
 
 ```
 ===============================
@@ -96,42 +128,102 @@ Menu toolkit:
 
 ---
 
-# Workflow Penggunaan
+# Cara Menggunakan
 
-Langkah umum:
+### 1️⃣ Extract Timestamp
 
-1️⃣ Extract timestamp dari file teks
+Gunakan file teks yang berisi timestamp dan judul.
 
-```
-input → sumber.txt
-output → data/timestamp.txt
-output → data/judul.txt
-```
-
-2️⃣ Potong video berdasarkan timestamp
+Contoh file tersedia di:
 
 ```
-input → video.mp4
-output → output/clips/clip_1.mp4
+sample/sample_input.txt
 ```
 
-3️⃣ Rename clip berdasarkan judul
+Ketika memilih menu **Extract Timestamp**, masukkan path file tersebut:
 
 ```
-clip_1.mp4 → Judul_video.mp4
+sample/sample_input.txt
 ```
 
-4️⃣ Generate subtitle otomatis
+Output yang dihasilkan:
 
 ```
-Judul_video.mp4 → Judul_video.srt
+data/timestamp.txt
+data/judul.txt
 ```
 
 ---
 
-# Whisper Models
+### 2️⃣ Potong Video
 
-Model yang tersedia:
+Pilih menu:
+
+```
+2. Potong Video
+```
+
+Masukkan path video sumber, contoh:
+
+```
+D:\video\podcast.mp4
+```
+
+Script akan membaca:
+
+```
+data/timestamp.txt
+```
+
+Lalu menghasilkan clip:
+
+```
+output/clips/clip_1.mp4
+output/clips/clip_2.mp4
+```
+
+Jika timestamp melebihi durasi video, clip tersebut akan **di-skip otomatis**.
+
+---
+
+### 3️⃣ Rename Video
+
+Pilih menu:
+
+```
+3. Rename Video
+```
+
+Clip akan diubah namanya berdasarkan isi:
+
+```
+data/judul.txt
+```
+
+Contoh:
+
+```
+clip_1.mp4
+↓
+NPC_ini_tiba_tiba_melakukan_hal_absurd.mp4
+```
+
+---
+
+### 4️⃣ Generate Subtitle
+
+Pilih menu:
+
+```
+4. Generate Subtitle
+```
+
+Pilih:
+
+* bahasa transkripsi
+* model Whisper
+
+Contoh model:
 
 | Model  | Speed         | Akurasi      |
 | ------ | ------------- | ------------ |
@@ -141,16 +233,31 @@ Model yang tersedia:
 | medium | lambat        | sangat bagus |
 | large  | paling lambat | terbaik      |
 
-Untuk workflow clip biasanya **small** atau **medium** sudah cukup.
+Subtitle `.srt` akan dibuat di folder yang sama dengan video:
+
+```
+output/clips/
+```
+
+Contoh hasil:
+
+```
+NPC_ini_tiba_tiba_melakukan_hal_absurd.mp4
+NPC_ini_tiba_tiba_melakukan_hal_absurd.srt
+```
 
 ---
 
 # Catatan
 
-Jika timestamp melebihi durasi video, script akan **skip otomatis** tanpa menghentikan proses.
+* Model Whisper akan otomatis diunduh saat pertama kali digunakan.
+* Model yang lebih besar memberikan akurasi lebih tinggi tetapi membutuhkan RAM/VRAM lebih besar.
+* Jika GPU tersedia, proses transkripsi akan jauh lebih cepat.
 
 ---
 
 # License
 
-MIT License
+Proyek ini menggunakan **MIT License**.
+
+Lihat file `LICENSE` untuk detail lengkap.
