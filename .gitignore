@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Whisper cache (opsional)
+*.pt
+
+# Data hasil extract
+data/*
+!data/.gitkeep
+
+# Output hasil video
+output/*
+!output/.gitkeep
+
+# Error logs
+error_log.txt
