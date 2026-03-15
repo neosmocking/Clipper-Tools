@@ -2,28 +2,26 @@ from pathlib import Path
 import re
 
 
-def clean_time(text):
+def normalize_time(t):
 
-    match = re.search(r'(\d{1,4}:\d{2})', text)
+    parts = t.split(":")
 
-    if not match:
-        return None
+    # jika format HH:MM:SS
+    if len(parts) == 3:
+        h = int(parts[0])
+        m = int(parts[1])
+        s = int(parts[2])
+        return f"{h:02d}:{m:02d}:{s:02d}"
 
-    time_str = match.group(1)
-    parts = time_str.split(":")
-
+    # jika format MM:SS
     if len(parts) == 2:
+        m = int(parts[0])
+        s = int(parts[1])
 
-        menit = int(parts[0])
-        detik = int(parts[1])
+        h = m // 60
+        m = m % 60
 
-        jam = menit // 60
-        sisa_menit = menit % 60
-
-        return f"{jam:02d}:{sisa_menit:02d}:{detik:02d}"
-
-    elif len(parts) == 3:
-        return time_str
+        return f"{h:02d}:{m:02d}:{s:02d}"
 
     return None
 
@@ -47,12 +45,12 @@ def extract_data(input_file, timestamp_out, judul_out):
 
     for line in timestamp_lines:
 
-        times = re.findall(r'(\d{1,4}:\d{2})', line)
+        times = re.findall(r'\d{1,2}:\d{2}:\d{2}|\d{1,3}:\d{2}', line)
 
         if len(times) >= 2:
 
-            start = clean_time(times[0])
-            end = clean_time(times[1])
+            start = normalize_time(times[0])
+            end = normalize_time(times[1])
 
             if start and end:
                 processed.append(f"{start} - {end}")
