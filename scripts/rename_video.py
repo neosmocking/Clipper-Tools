@@ -2,101 +2,103 @@ import re
 from pathlib import Path
 
 
-# -----------------------
-# Bersihkan nama file
-# -----------------------
+# Membersihkan teks agar aman dijadikan nama file
 def clean_filename(text):
 
-    # hapus karakter ilegal windows
+    # Hapus karakter ilegal di Windows
     text = re.sub(r'[\\/:*?"<>|]', '', text)
 
-    # ganti spasi berlebih
+    # Rapikan spasi berlebih
     text = re.sub(r'\s+', ' ', text)
 
     text = text.strip()
 
-    # ganti spasi dengan underscore
+    # Ganti spasi menjadi underscore
     text = text.replace(" ", "_")
 
-    # batasi panjang nama file
+    # Jika judul kosong gunakan fallback
+    if text == "":
+        text = "clip"
+
+    # Batasi panjang nama file
     return text[:120]
 
 
-# -----------------------
-# Rename Clips
-# -----------------------
 def rename_clips(judul_file, clips_folder):
 
+    # Path file judul dan folder clip
     judul_path = Path(judul_file)
     clips_path = Path(clips_folder)
 
-    if not judul_path.exists():
-        print("File judul.txt tidak ditemukan.")
-        return
-
-    if not clips_path.exists():
-        print("Folder clips tidak ditemukan.")
-        return
-
+    # Baca semua judul dari file
     titles = judul_path.read_text(encoding="utf-8").splitlines()
 
-    # skip baris pertama jika URL
+    # Jika baris pertama berisi URL (kadang dari hasil AI), skip
     if titles and titles[0].startswith("http"):
         titles = titles[1:]
 
-    # ambil semua clip
+    # Ambil semua file clip
     clips = list(clips_path.glob("clip_*.mp4"))
 
-    if not clips:
-        print("Tidak ada clip ditemukan.")
-        return
-
-    # -----------------------
-    # Natural sort clip_1, clip_2, clip_10
-    # -----------------------
+    # Urutkan clip secara natural (clip_1, clip_2, clip_10)
     clips.sort(key=lambda x: int(x.stem.split("_")[1]))
 
-    print(f"\nJumlah clip ditemukan : {len(clips)}")
-    print(f"Jumlah judul ditemukan: {len(titles)}\n")
+    # Debug jumlah clip dan judul
+    print("\n--- DEBUG ---")
+    print("Jumlah clip :", len(clips))
+    print("Jumlah judul:", len(titles))
+    print("-------------\n")
 
+    # ------------------------
+    # Tahap 1: rename sementara
+    # ------------------------
+    # Menghindari konflik nama saat rename massal
+    temp_files = []
+    for clip in clips:
+        temp_path = clip.with_name(f"temp_{clip.name}")
+        clip.rename(temp_path)
+        temp_files.append(temp_path)
+
+    # Menyimpan nama file yang sudah digunakan
     used_names = set()
 
-    for i, clip in enumerate(clips):
+    # ------------------------
+    # Tahap 2: rename final
+    # ------------------------
+    for i, clip in enumerate(temp_files):
 
+        # Jika judul tidak cukup, skip
         if i >= len(titles):
-            print(f"Tidak ada judul untuk {clip.name}")
+            print("Skip:", clip.name)
             continue
 
+        # Bersihkan judul agar aman jadi nama file
         title = clean_filename(titles[i])
 
-        new_name = f"{title}.mp4"
+        # Tambahkan nomor urut di depan
+        number = f"{i+1:02d}"
+        new_name = f"{number}_{title}.mp4"
 
-        # cegah duplikat nama
+        # Jika nama sudah ada, tambahkan counter
         counter = 2
         while new_name in used_names or (clips_path / new_name).exists():
-            new_name = f"{title}_{counter}.mp4"
+            new_name = f"{number}_{title}_{counter}.mp4"
             counter += 1
 
         new_path = clips_path / new_name
 
-        try:
-            clip.rename(new_path)
-            used_names.add(new_name)
-            print(f"{clip.name} -> {new_name}")
+        # Rename file
+        clip.rename(new_path)
+        used_names.add(new_name)
 
-        except Exception as e:
-            print(f"Gagal rename {clip.name}: {e}")
+        print(f"{clip.name} -> {new_name}")
 
-    print("\nRename selesai.\n")
+    print("\nRename selesai.")
 
 
-# -----------------------
-# MAIN
-# -----------------------
 def main():
 
-    print("\n=== RENAME VIDEO ===")
-
+    # Lokasi file input
     judul_file = "data/judul.txt"
     clips_folder = "output/clips"
 
