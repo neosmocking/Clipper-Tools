@@ -1,106 +1,86 @@
 import subprocess
-import re
 from pathlib import Path
 
 
-def time_to_seconds(t):
+def read_timestamps(file_path):
+    timestamps = []
 
-    h, m, s = map(int, t.split(":"))
-    return h * 3600 + m * 60 + s
+    with open(file_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
 
+            start, end = line.split("-")
+            timestamps.append((start.strip(), end.strip()))
 
-def get_video_duration(video_path):
-
-    cmd = [
-        "ffprobe",
-        "-v", "error",
-        "-show_entries", "format=duration",
-        "-of", "default=noprint_wrappers=1:nokey=1",
-        str(video_path)
-    ]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    try:
-        return float(result.stdout.strip())
-    except:
-        return 0
+    return timestamps
 
 
-def cut_video(video_path, timestamp_file, output_folder):
+def cut_video(input_video, timestamp_file, output_folder):
 
-    video_path = Path(video_path)
-    timestamp_path = Path(timestamp_file)
-    output_folder = Path(output_folder)
+    video_path = Path(input_video)
+    ts_path = Path(timestamp_file)
+    out_dir = Path(output_folder)
 
     if not video_path.exists():
         print("Video tidak ditemukan.")
         return
 
-    if not timestamp_path.exists():
-        print("timestamp.txt tidak ditemukan.")
+    if not ts_path.exists():
+        print("File timestamp tidak ditemukan.")
         return
 
-    output_folder.mkdir(parents=True, exist_ok=True)
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-    duration = get_video_duration(video_path)
+    timestamps = read_timestamps(ts_path)
 
-    print(f"\nDurasi video: {round(duration,2)} detik\n")
+    print(f"\nJumlah clip: {len(timestamps)}\n")
 
-    timestamps = timestamp_path.read_text().splitlines()
+    for i, (start, end) in enumerate(timestamps, start=1):
 
-    clip_number = 1
-
-    for line in timestamps:
-
-        match = re.match(r'(\d{2}:\d{2}:\d{2})\s*-\s*(\d{2}:\d{2}:\d{2})', line)
-
-        if not match:
-            print(f"Format timestamp salah -> {line}")
-            continue
-
-        start = match.group(1)
-        end = match.group(2)
-
-        start_sec = time_to_seconds(start)
-        end_sec = time_to_seconds(end)
-
-        if start_sec >= duration or end_sec > duration:
-
-            print(f"Skip: {line} (time stamp tidak ada dalam video)")
-            continue
-
-        output_file = output_folder / f"clip_{clip_number}.mp4"
+        output_file = out_dir / f"clip_{i}.mp4"
 
         cmd = [
             "ffmpeg",
             "-y",
-            "-i", str(video_path),
+
+            # seek cepat
             "-ss", start,
+
             "-to", end,
-            "-c", "copy",
+            "-i", str(video_path),
+
+            # encode video stabil
+            "-c:v", "libx264",
+            "-preset", "veryfast",
+            "-crf", "18",
+
+            # audio
+            "-c:a", "aac",
+            "-b:a", "192k",
+
+            # memastikan awal clip keyframe
+            "-avoid_negative_ts", "make_zero",
+
             str(output_file)
         ]
 
-        print(f"Memotong: {line}")
+        print(f"Memotong clip {i}: {start} -> {end}")
 
-        subprocess.run(cmd)
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        clip_number += 1
-
-    print("\nProses potong video selesai.\n")
+    print("\nSemua clip selesai dibuat.")
 
 
 def main():
 
-    print("\n=== POTONG VIDEO ===")
-
-    video_path = input("Masukkan path video: ").strip().strip('"')
+    input_video = input("Masukkan path video sumber: ").strip()
 
     timestamp_file = "data/timestamp.txt"
     output_folder = "output/clips"
 
-    cut_video(video_path, timestamp_file, output_folder)
+    cut_video(input_video, timestamp_file, output_folder)
 
 
 if __name__ == "__main__":
