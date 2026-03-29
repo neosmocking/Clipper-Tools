@@ -47,7 +47,7 @@ def extract_data(input_file, timestamp_out, judul_out):
     timestamp_lines = re.findall(r'\*\s*Timestamp:\s*(.*?)\n', content)
 
     # Mengambil semua judul / hook yang ada di dalam tanda kutip
-    hooks = re.findall(r'\*\sSaran Hook:\s*"(.*?)"', content)
+    hooks = re.findall(r'\*\s*Saran Hook:\s*"(.*?)"', content)
 
     processed = []
 
