@@ -1,5 +1,12 @@
 from pathlib import Path
 import re
+import os
+
+def clean_path(p):
+    if not p:
+        return p
+    p = p.strip().strip('"').strip("'")
+    return p
 
 
 # Mengubah berbagai format waktu menjadi format standar HH:MM:SS
@@ -90,9 +97,12 @@ def extract_data(input_file, timestamp_out, judul_out):
 
 def main():
 
-    # Meminta user memasukkan path file sumber
-    sumber_path = input("Masukkan path file sumber: ").strip()
+    # Meminta user memasukkan path file sumber    
+    raw_path = input("Masukkan path file sumber: ")
 
+    # bersihin + normalize
+    sumber_path = os.path.normpath(clean_path(raw_path))
+    
     # Lokasi output hasil ekstraksi
     timestamp_file = "data/timestamp.txt"
     judul_file = "data/judul.txt"

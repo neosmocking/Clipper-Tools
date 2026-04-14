@@ -1,6 +1,12 @@
 import subprocess
 from pathlib import Path
+import os
 
+def clean_path(p):
+    if not p:
+        return p
+    p = p.strip().strip('"').strip("'")
+    return p
 
 # Membaca file timestamp.txt lalu mengubahnya menjadi list pasangan waktu
 # Contoh isi file:
@@ -94,7 +100,11 @@ def cut_video(input_video, timestamp_file, output_folder):
 def main():
 
     # Meminta user memasukkan path video sumber
-    input_video = input("Masukkan path video sumber: ").strip()
+    raw_video = input("Masukkan path video sumber: ")
+    input_video = os.path.normpath(clean_path(raw_video))
+
+
+    # input_video = input("Masukkan path video sumber: ").strip()
 
     # Lokasi file timestamp hasil extractor
     timestamp_file = "data/timestamp.txt"
