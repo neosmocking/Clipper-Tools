@@ -99,7 +99,7 @@ def rename_clips(judul_file, clips_folder):
 def main():
 
     # Lokasi file input
-    judul_file = "data/judul.txt"
+    judul_file = "data/Super_Title.txt"
     clips_folder = "output/clips"
 
     rename_clips(judul_file, clips_folder)
