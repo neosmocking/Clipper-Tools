@@ -54,8 +54,8 @@ def extract_data(input_file, timestamp_out, judul_out, super_title_out):
     # Hook (untuk deskripsi)
     hooks = re.findall(r'\*\s*Hook:\s*"(.*?)"', content)
 
-    # Super Title (judul utama dari ###)
-    super_titles = re.findall(r'###\s*(?:\d+\.\s*)?(.*)', content)
+    # Super Title (judul utama dari ###)    
+    super_titles = re.findall(r'###\s*(?:\d+\s*[\.:,-]\s*)?(.*)', content)
 
     processed = []
 
