@@ -1,8 +1,11 @@
+### 1: Title 1
 * Timestamp: 00:10 - 00:20
-* Hook: "Moment lucu ketika NPC tiba-tiba glitch"
+* Hook: "Hook 1"
 
+### 2: Title 2
 * Timestamp: 01:05 - 01:15
-* Hook: "Boss fight ini berubah jadi chaos total"
+* Hook: "Hook 2"
 
+### 3: Title 3
 * Timestamp: 02:10 - 02:25
-* Hook: "Player menemukan bug paling aneh di game ini"
+* Hook: "Hook 3"
