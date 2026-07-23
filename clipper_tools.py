@@ -1,20 +1,21 @@
 import subprocess
+import sys
 
 
 def run_extractor():
-    subprocess.run(["python", "scripts/extractor.py"])
-
-
+    subprocess.run([sys.executable, "scripts/extractor.py"])
+ 
+ 
 def run_video_cut():
-    subprocess.run(["python", "scripts/video_cut.py"])
-
-
+    subprocess.run([sys.executable, "scripts/video_cut.py"])
+ 
+ 
 def run_rename():
-    subprocess.run(["python", "scripts/rename_video.py"])
-
-
+    subprocess.run([sys.executable, "scripts/rename_video.py"])
+ 
+ 
 def run_subtitle():
-    subprocess.run(["python", "scripts/subtitle_generator.py"])
+    subprocess.run([sys.executable, "scripts/subtitle_generator.py"])
 
 
 def main():
